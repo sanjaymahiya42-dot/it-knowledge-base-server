@@ -47,7 +47,7 @@ const allowedOrigins = [
 
   "https://it-knowledge-base-client-kt92qxe0z-sanjaymahiya42-dots-projects.vercel.app",
 
-  "https://it-knowledge-base-client-qxonw2my-sanjaymahiya42-dots-projects.vercel.app"
+  "https://it-knowledge-base-client-qxonw22my-sanjaymahiya42-dots-projects.vercel.app"
 ];
 
 
