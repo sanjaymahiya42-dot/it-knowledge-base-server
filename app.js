@@ -34,7 +34,7 @@ app.use(
 
 /// ---------------- CORS ----------------
 
-const cors = require("cors");
+
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -54,7 +54,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type","Authorization"]
 }));
 
-app.options("*", cors());
+
 app.use(compression());
 // ---------------- MIDDLEWARE ----------------
 
