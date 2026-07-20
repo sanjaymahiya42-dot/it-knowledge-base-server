@@ -32,51 +32,30 @@ app.use(
   })
 );
 
-// ---------------- CORS ----------------
-// ---------------- CORS ----------------
+/// ---------------- CORS ----------------
 
-const allowedOrigins = [
-  "https://it-knowledge-base-client.vercel.app",
-  "https://it-knowledge-base-duw49p1qd-sanjaymahiya42-dots-projects.vercel.app",
-];
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
 
-if (process.env.CLIENT_URL) {
-  process.env.CLIENT_URL.split(",").forEach((url) => {
-    const origin = url.trim();
-    if (origin && !allowedOrigins.includes(origin)) {
-      allowedOrigins.push(origin);
-    }
-  });
-}
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    console.log("Incoming Origin:", origin);
-
-    // Postman / curl / health check
-    if (!origin) {
-      return callback(null, true);
-    }
-
-    if (allowedOrigins.includes(origin)) {
+    if (
+      origin === "https://it-knowledge-base-client.vercel.app" ||
+      origin.endsWith(".vercel.app")
+    ) {
       return callback(null, true);
     }
 
     console.log("Blocked Origin:", origin);
-    return callback(new Error("Not allowed by CORS"));
+    callback(new Error("Not allowed by CORS"));
   },
+  credentials: true
+}));
 
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-
+app.options("*", cors());
+app.use(compression());
 // ---------------- MIDDLEWARE ----------------
 
-app.use(compression());
+
 
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
