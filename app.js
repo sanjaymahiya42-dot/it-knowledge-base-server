@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
 import compression from "compression";
 import cors from "cors";
 import express from "express";
@@ -16,93 +17,174 @@ import backupRoutes from "./routes/backupRoutes.js";
 
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 
 const app = express();
 
 app.set("trust proxy", 1);
 
-// ---------------- SECURITY ----------------
+
+// ================= SECURITY =================
 
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginResourcePolicy: {
+      policy: "cross-origin"
+    },
     contentSecurityPolicy: false,
   })
 );
 
-/// ---------------- CORS ----------------
 
+// ================= CORS =================
 
 
 const allowedOrigins = [
   "http://localhost:5173",
+
   "https://it-knowledge-base-client-kt92qxe0z-sanjaymahiya42-dots-projects.vercel.app",
+
   "https://it-knowledge-base-client-qxonw2my-sanjaymahiya42-dots-projects.vercel.app"
 ];
 
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"]
-}));
-
-app.use(compression());
-// ---------------- MIDDLEWARE ----------------
-
-
-
-app.use(express.json({ limit: "2mb" }));
-app.use(express.urlencoded({ extended: true }));
-
-app.use(mongoSanitize());
 
 app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 300,
-    standardHeaders: true,
-    legacyHeaders: false,
+  cors({
+    origin: function(origin, callback){
+
+      // allow Postman, mobile apps, server requests
+      if(!origin){
+        return callback(null,true);
+      }
+
+
+      if(allowedOrigins.includes(origin)){
+        return callback(null,true);
+      }
+
+
+      console.log("Blocked CORS Origin:", origin);
+
+      return callback(null,false);
+
+    },
+
+    credentials:true,
+
+    methods:[
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE",
+      "OPTIONS"
+    ],
+
+    allowedHeaders:[
+      "Content-Type",
+      "Authorization"
+    ]
+
   })
 );
 
-if (process.env.NODE_ENV !== "test") {
-  app.use(morgan("dev"));
+
+// ================= MIDDLEWARE =================
+
+
+app.use(express.json({
+  limit:"2mb"
+}));
+
+app.use(
+ express.urlencoded({
+  extended:true
+ })
+);
+
+
+app.use(compression());
+
+
+app.use(
+ mongoSanitize()
+);
+
+
+
+app.use(
+ rateLimit({
+  windowMs:15*60*1000,
+  max:300,
+  standardHeaders:true,
+  legacyHeaders:false
+ })
+);
+
+
+
+if(process.env.NODE_ENV !== "test"){
+ app.use(morgan("dev"));
 }
 
-// ---------------- STATIC ----------------
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ---------------- HEALTH ----------------
+// ================= STATIC =================
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    service: "IT Knowledge Base API",
-    message: "Backend Running Successfully",
-  });
+
+app.use(
+ "/uploads",
+ express.static(
+  path.join(__dirname,"uploads")
+ )
+);
+
+
+
+// ================= HEALTH CHECK =================
+
+
+app.get("/api/health",(req,res)=>{
+
+ res.status(200).json({
+
+  status:"ok",
+
+  service:"IT Knowledge Base API",
+
+  message:"Backend Running Successfully"
+
+ });
+
 });
 
-// ---------------- ROUTES ----------------
 
-app.use("/api/auth", authRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/articles", articleRoutes);
-app.use("/api/uploads", uploadRoutes);
-app.use("/api/backup", backupRoutes);
 
-// ---------------- ERROR HANDLER ----------------
+// ================= ROUTES =================
+
+
+app.use("/api/auth",authRoutes);
+
+app.use("/api/categories",categoryRoutes);
+
+app.use("/api/articles",articleRoutes);
+
+app.use("/api/uploads",uploadRoutes);
+
+app.use("/api/backup",backupRoutes);
+
+
+
+// ================= ERROR =================
+
 
 app.use(notFound);
+
 app.use(errorHandler);
+
+
 
 export default app;
