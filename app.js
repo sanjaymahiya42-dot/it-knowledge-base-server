@@ -33,48 +33,46 @@ app.use(
 );
 
 // ---------------- CORS ----------------
+// ---------------- CORS ----------------
 
 const allowedOrigins = [
   "https://it-knowledge-base-client.vercel.app",
-  "http://localhost:5173",
+  "https://it-knowledge-base-duw49p1qd-sanjaymahiya42-dots-projects.vercel.app",
 ];
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      console.log("Incoming Origin:", origin);
+if (process.env.CLIENT_URL) {
+  process.env.CLIENT_URL.split(",").forEach((url) => {
+    const origin = url.trim();
+    if (origin && !allowedOrigins.includes(origin)) {
+      allowedOrigins.push(origin);
+    }
+  });
+}
 
-      // Postman / Server Requests
-      if (!origin) {
-        return callback(null, true);
-      }
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log("Incoming Origin:", origin);
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+    // Postman / curl / health check
+    if (!origin) {
+      return callback(null, true);
+    }
 
-      console.log("❌ Blocked Origin:", origin);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      return callback(new Error("CORS Not Allowed"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+    console.log("Blocked Origin:", origin);
+    return callback(new Error("Not allowed by CORS"));
+  },
 
-// OPTIONS Requests
-app.options(/.*/, cors());
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-// Debug Logs
-app.use((req, res, next) => {
-  console.log("==================================");
-  console.log("Origin :", req.headers.origin);
-  console.log("Method :", req.method);
-  console.log("URL    :", req.originalUrl);
-  console.log("==================================");
-  next();
-});
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // ---------------- MIDDLEWARE ----------------
 
