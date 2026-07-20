@@ -34,21 +34,24 @@ app.use(
 
 /// ---------------- CORS ----------------
 
+const cors = require("cors");
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://it-knowledge-base-client-kt92qxe0z-sanjaymahiya42-dots-projects.vercel.app"
+];
+
 app.use(cors({
-  origin(origin, callback) {
-    if (!origin) return callback(null, true);
-
-    if (
-      origin === "https://it-knowledge-base-client.vercel.app" ||
-      origin.endsWith(".vercel.app")
-    ) {
-      return callback(null, true);
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
     }
-
-    console.log("Blocked Origin:", origin);
-    callback(new Error("Not allowed by CORS"));
   },
-  credentials: true
+  credentials: true,
+  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
 }));
 
 app.options("*", cors());
