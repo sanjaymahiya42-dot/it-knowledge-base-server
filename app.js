@@ -38,7 +38,8 @@ app.use(
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://it-knowledge-base-client-kt92qxe0z-sanjaymahiya42-dots-projects.vercel.app"
+  "https://it-knowledge-base-client-kt92qxe0z-sanjaymahiya42-dots-projects.vercel.app",
+  "https://it-knowledge-base-client-qxonw2my-sanjaymahiya42-dots-projects.vercel.app"
 ];
 
 app.use(cors({
@@ -53,7 +54,6 @@ app.use(cors({
   methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
   allowedHeaders: ["Content-Type","Authorization"]
 }));
-
 
 app.use(compression());
 // ---------------- MIDDLEWARE ----------------
