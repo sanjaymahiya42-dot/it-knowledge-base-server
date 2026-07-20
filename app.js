@@ -23,7 +23,7 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-
+// ---------------- SECURITY ----------------
 
 app.use(
   helmet({
@@ -32,12 +32,51 @@ app.use(
   })
 );
 
+// ---------------- CORS ----------------
+
+const allowedOrigins = [
+  "https://it-knowledge-base-client.vercel.app",
+  "http://localhost:5173",
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL?.split(",") || "*",
+    origin(origin, callback) {
+      console.log("Incoming Origin:", origin);
+
+      // Postman / Server Requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log("❌ Blocked Origin:", origin);
+
+      return callback(new Error("CORS Not Allowed"));
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// OPTIONS Requests
+app.options(/.*/, cors());
+
+// Debug Logs
+app.use((req, res, next) => {
+  console.log("==================================");
+  console.log("Origin :", req.headers.origin);
+  console.log("Method :", req.method);
+  console.log("URL    :", req.originalUrl);
+  console.log("==================================");
+  next();
+});
+
+// ---------------- MIDDLEWARE ----------------
 
 app.use(compression());
 
@@ -59,17 +98,29 @@ if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
 }
 
+// ---------------- STATIC ----------------
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "it-knowledge-base" });
+// ---------------- HEALTH ----------------
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "IT Knowledge Base API",
+    message: "Backend Running Successfully",
+  });
 });
+
+// ---------------- ROUTES ----------------
 
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/articles", articleRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/backup", backupRoutes);
+
+// ---------------- ERROR HANDLER ----------------
 
 app.use(notFound);
 app.use(errorHandler);
