@@ -41,32 +41,34 @@ app.use(
 
 // ================= CORS =================
 
-
-const cors = require("cors");
+// ================= CORS =================
 
 const allowedOrigins = [
   "http://localhost:5173",
   "https://it-knowledge-base-client.vercel.app"
 ];
 
-app.use(cors({
-  origin: function(origin, callback){
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
 
-    if(!origin) return callback(null,true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
 
-    if(
-      allowedOrigins.includes(origin) ||
-      origin.endsWith(".vercel.app")
-    ){
-      callback(null,true);
-    }else{
-      callback(new Error("Not allowed by CORS"));
-    }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-  },
-  credentials:true
-}));
-
+app.options("*", cors());
 // ================= MIDDLEWARE =================
 
 
@@ -152,6 +154,20 @@ app.use("/api/uploads",uploadRoutes);
 app.use("/api/backup",backupRoutes);
 
 
+// ================= FRONTEND =================
+
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("*", (req, res) => {
+  if (req.path.startsWith("/api")) {
+    return res.status(404).json({
+      success: false,
+      message: "API Route Not Found",
+    });
+  }
+
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // ================= ERROR =================
 
