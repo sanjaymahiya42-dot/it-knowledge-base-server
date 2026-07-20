@@ -42,55 +42,30 @@ app.use(
 // ================= CORS =================
 
 
+const cors = require("cors");
+
 const allowedOrigins = [
   "http://localhost:5173",
-
-  "https://it-knowledge-base-client-kt92qxe0z-sanjaymahiya42-dots-projects.vercel.app",
-
-  "https://it-knowledge-base-client-qxonw22my-sanjaymahiya42-dots-projects.vercel.app"
+  "https://it-knowledge-base-client.vercel.app"
 ];
 
+app.use(cors({
+  origin: function(origin, callback){
 
-app.use(
-  cors({
-    origin: function(origin, callback){
+    if(!origin) return callback(null,true);
 
-      // allow Postman, mobile apps, server requests
-      if(!origin){
-        return callback(null,true);
-      }
+    if(
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app")
+    ){
+      callback(null,true);
+    }else{
+      callback(new Error("Not allowed by CORS"));
+    }
 
-
-      if(allowedOrigins.includes(origin)){
-        return callback(null,true);
-      }
-
-
-      console.log("Blocked CORS Origin:", origin);
-
-      return callback(null,false);
-
-    },
-
-    credentials:true,
-
-    methods:[
-      "GET",
-      "POST",
-      "PUT",
-      "PATCH",
-      "DELETE",
-      "OPTIONS"
-    ],
-
-    allowedHeaders:[
-      "Content-Type",
-      "Authorization"
-    ]
-
-  })
-);
-
+  },
+  credentials:true
+}));
 
 // ================= MIDDLEWARE =================
 
